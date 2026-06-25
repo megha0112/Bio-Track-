@@ -1,3 +1,6 @@
+[providers]
+python = {}
+
 [phases.setup]
 nixPkgs = ["python310", "gcc", "gnumake", "libGL", "glibc"]
 
