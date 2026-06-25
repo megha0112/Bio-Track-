@@ -17,8 +17,8 @@ os.makedirs(DATABASE, exist_ok=True)
 
 app = Flask(__name__, template_folder=FRONTEND_DIR)
 
-face_app = FaceAnalysis(name="buffalo_l")
-face_app.prepare(ctx_id=-1, det_size=(640, 640))
+face_app = FaceAnalysis(name="buffalo_s")
+face_app.prepare(ctx_id=-1, det_size=(320, 320))
 
 REGISTRATION_SESSIONS = {}
 

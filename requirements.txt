@@ -1,6 +1,8 @@
 flask
 flask-cors
-opencv-python
+opencv-python-headless
 numpy
 scipy
 insightface
+onnxruntime
+gunicorn
