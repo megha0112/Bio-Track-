@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioTrack - Smart Attendance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .page-panel { display: none; }
+        .page-panel.active { display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 min-h-screen w-screen flex flex-col overflow-x-hidden">
+
+    <header class="bg-slate-900 text-white px-12 py-5 flex justify-between items-center shadow-lg w-full shrink-0">
+        <div onclick="navigateTo('home-view')" class="cursor-pointer space-y-0.5">
+            <h1 class="font-bold text-2xl tracking-wide">BioTrack</h1>
+            <p class="text-xs text-blue-400 font-medium tracking-wider">Smart Attendance System</p>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full px-12 py-8 flex flex-col justify-start">
+
+        <section id="home-view" class="page-panel active space-y-10 w-full mt-8">
+            <div class="text-center max-w-3xl mx-auto space-y-3">
+                <h2 class="text-4xl font-black text-slate-900 tracking-tight">Welcome to BioTrack Portal</h2>
+                <p class="text-lg text-slate-500">A clean and simple way to track multi-person attendance using advanced face recognition. Choose an option below to get started!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full">
+                <div onclick="navigateTo('scan-view')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-blue-500 transition cursor-pointer flex flex-col justify-between group min-h-[260px]">
+                    <div class="space-y-4">
+                        <div class="text-3xl bg-blue-50 text-blue-600 p-3.5 rounded-2xl w-fit group-hover:bg-blue-600 group-hover:text-white transition shadow-sm">⏱️</div>
+                        <h3 class="font-bold text-xl text-slate-900">Mark Attendance</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">Turn on your camera to scan faces and automatically mark today's attendance entries.</p>
+                    </div>
+                    <span class="text-sm text-blue-600 font-bold inline-block mt-4">Open Scanner &rarr;</span>
+                </div>
+
+                <div onclick="navigateTo('register-view')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-emerald-500 transition cursor-pointer flex flex-col justify-between group min-h-[260px]">
+                    <div class="space-y-4">
+                        <div class="text-3xl bg-emerald-50 text-emerald-600 p-3.5 rounded-2xl w-fit group-hover:bg-emerald-600 group-hover:text-white transition shadow-sm">👤</div>
+                        <h3 class="font-bold text-xl text-slate-900">Register New Person</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">Add a new user to the system by taking 5 quick sample photos from different angles.</p>
+                    </div>
+                    <span class="text-sm text-emerald-600 font-bold inline-block mt-4">Register Person &rarr;</span>
+                </div>
+
+                <div onclick="navigateTo('logs-view')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-amber-500 transition cursor-pointer flex flex-col justify-between group min-h-[260px]">
+                    <div class="space-y-4">
+                        <div class="text-3xl bg-amber-50 text-amber-600 p-3.5 rounded-2xl w-fit group-hover:bg-amber-600 group-hover:text-white transition shadow-sm">📋</div>
+                        <h3 class="font-bold text-xl text-slate-900">Attendance Log Records</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">View the complete history of saved sign-ins organized simply by date and time.</p>
+                    </div>
+                    <span class="text-sm text-amber-600 font-bold inline-block mt-4">View Records &rarr;</span>
+                </div>
+
+                <div onclick="navigateTo('directory-view')" class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-purple-500 transition cursor-pointer flex flex-col justify-between group min-h-[260px]">
+                    <div class="space-y-4">
+                        <div class="text-3xl bg-purple-50 text-purple-600 p-3.5 rounded-2xl w-fit group-hover:bg-purple-600 group-hover:text-white transition shadow-sm">👥</div>
+                        <h3 class="font-bold text-xl text-slate-900">Employee Attendance Chart</h3>
+                        <p class="text-sm text-slate-400 leading-relaxed">Check individual profiles to see a clean visual summary of their total attendance rate.</p>
+                    </div>
+                    <span class="text-sm text-purple-600 font-bold inline-block mt-4">View Analytics &rarr;</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="scan-view" class="page-panel max-w-4xl mx-auto w-full space-y-6">
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <h2 class="font-bold text-2xl text-slate-900">Attendance Verification Scanner</h2>
+                    <button onclick="navigateTo('home-view')" class="text-sm text-slate-400 hover:text-slate-600 font-bold">&larr; Back to Menu</button>
+                </div>
+                <div class="text-xs text-blue-600 bg-blue-50/60 font-semibold px-4 py-2 rounded-xl w-fit border border-blue-100 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span> Real-time multi-face active tracking engine active.
+                </div>
+                <div class="relative bg-neutral-950 rounded-2xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center shadow-sm max-w-3xl mx-auto w-full">
+                    <video id="webcam" class="absolute inset-0 w-full h-full object-cover scale-x-[-1]" autoplay playsinline></video>
+                    <canvas id="webcam-overlay" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></canvas>
+                </div>
+                <button id="capture-btn" class="w-full max-w-3xl mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition text-sm tracking-wide shadow-md">
+                    Scan & Record Attendance
+                </button>
+                <div id="scan-feedback" class="max-w-3xl mx-auto px-4 py-3 rounded-xl text-sm font-semibold hidden text-center shadow-sm"></div>
+            </div>
+        </section>
+
+        <section id="register-view" class="page-panel max-w-3xl mx-auto w-full space-y-6">
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+                <div class="flex justify-between items-center border-b pb-4">
+                    <div class="space-y-1.5">
+                        <h2 class="font-bold text-2xl text-slate-900">New Profile Registry</h2>
+                        <div class="flex items-center gap-2">
+                            <span id="pose-instruction-box" class="text-xs bg-amber-50 text-amber-800 border border-amber-200 font-extrabold px-3 py-1 rounded-lg shadow-sm">
+                                Guide: Look Straight 😐
+                            </span>
+                            <span id="sample-counter-badge" class="text-xs bg-slate-100 text-slate-700 font-bold px-3 py-1 rounded-lg border border-slate-200">
+                                Photos Saved: 0/5
+                            </span>
+                        </div>
+                    </div>
+                    <button onclick="navigateTo('home-view')" class="text-sm text-slate-400 hover:text-slate-600 font-bold">&larr; Back to Menu</button>
+                </div>
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold uppercase text-slate-400 tracking-wider">Full Name</label>
+                    <input type="text" id="reg-name" oninput="checkDuplicateNameGuard()" placeholder="Enter name (e.g., Megha)" class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-medium bg-slate-50">
+                </div>
+                <div class="relative bg-neutral-950 rounded-2xl overflow-hidden aspect-video border border-slate-200 flex items-center justify-center shadow-sm max-w-2xl mx-auto w-full">
+                    <video id="reg-webcam" class="absolute inset-0 w-full h-full object-cover scale-x-[-1]" autoplay playsinline></video>
+                    <canvas id="reg-overlay" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></canvas>
+                </div>
+                <div class="grid grid-cols-2 gap-4 max-w-2xl mx-auto w-full">
+                    <button id="btn-capture-photo" onclick="captureRegistrationSample()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl transition text-sm tracking-wide shadow-md">📸 Capture Photo</button>
+                    <button id="btn-save-profile" onclick="submitRegistrationProfile()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition text-sm tracking-wide shadow-md">💾 Save Profile</button>
+                </div>
+                <div id="reg-feedback" class="max-w-2xl mx-auto px-4 py-3 rounded-xl text-sm font-semibold hidden text-center shadow-sm"></div>
+            </div>
+        </section>
+
+        <section id="logs-view" class="page-panel w-full space-y-6">
+            <div class="flex justify-between items-center border-b pb-4">
+                <div>
+                    <h2 class="font-bold text-2xl text-slate-900">Attendance Log History</h2>
+                    <p class="text-sm text-slate-400 mt-1">A timeline view of everyone who has clocked into the system.</p>
+                </div>
+                <button onclick="navigateTo('home-view')" class="text-sm text-slate-400 hover:text-slate-600 font-bold">&larr; Back to Menu</button>
+            </div>
+
+            <div class="space-y-2 w-full">
+                <span class="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-4 py-1.5 rounded-full uppercase tracking-wider inline-block">Today</span>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <tbody id="tbody-today" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="space-y-2 w-full">
+                <span class="text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-4 py-1.5 rounded-full uppercase tracking-wider inline-block">Yesterday</span>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <tbody id="tbody-yesterday" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="space-y-2 w-full">
+                <span class="text-xs font-bold text-slate-400 bg-slate-50 border border-slate-200 px-4 py-1.5 rounded-full uppercase tracking-wider inline-block">Older Log Entries</span>
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden w-full">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <tbody id="tbody-older" class="divide-y text-slate-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="directory-view" class="page-panel w-full space-y-6">
+            <div class="flex justify-between items-center border-b pb-4">
+                <div>
+                    <h2 class="font-bold text-3xl text-slate-900">Employee Attendance Summary</h2>
+                    <p class="text-sm text-slate-400 mt-1">Select an individual below to view a realistic percentage breakdown of their attendance based on history logs.</p>
+                </div>
+                <button onclick="navigateTo('home-view')" class="text-sm text-slate-400 hover:text-slate-600 font-bold">&larr; Back to Menu</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-start w-full">
+                <div class="bg-white rounded-2xl border border-slate-200 p-6 space-y-2 max-h-[460px] overflow-y-auto shadow-sm">
+                    <span class="text-xs font-bold text-slate-400 tracking-wider block px-2 mb-2">Registered Names</span>
+                    <div id="directory-list-box" class="space-y-2"></div>
+                </div>
+
+                <div class="md:col-span-2 bg-white rounded-2xl border border-slate-200 p-8 flex flex-col justify-between min-h-[460px] shadow-sm relative">
+                    <div id="chart-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-sm text-center p-8 bg-white rounded-2xl">
+                        <span>Select a profile from the sidebar to view their attendance rate.</span>
+                    </div>
+
+                    <div id="chart-container-content" class="hidden h-full flex-1 flex flex-col justify-between space-y-6">
+                        <div class="border-b pb-3">
+                            <h3 id="chart-worker-title" class="text-2xl font-bold text-slate-900">---</h3>
+                            <p class="text-xs text-emerald-600 font-semibold mt-1">Status: Active Database Record</p>
+                        </div>
+                        <div class="flex-1 min-h-[280px] max-h-[300px] relative flex items-center justify-center">
+                            <canvas id="circularAttendanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <canvas id="hidden-canvas" style="display:none;" width="640" height="480"></canvas>
+
+    <script>
+        let liveStreamObject = null;
+        let localSystemLogsArray = [];
+        let doughnutChartReference = null;
+        let persistentSampleIndex = 0;
+        let knownRegisteredUsersList = [];
+        let frameProcessingIntervalId = null;
+        let isRequestInFlight = false;
+
+        const poseGuidelines = [
+            "Guide: Look Straight 😐",
+            "Guide: Look Right ➡️",
+            "Guide: Look Left ⬅️",
+            "Guide: Look Up ⬆️",
+            "Guide: Look Down ⬇️"
+        ];
+
+        const captureCanvas = document.getElementById('hidden-canvas');
+
+        function navigateTo(viewId) {
+            killActiveWebcamFeeds();
+
+            document.querySelectorAll('.page-panel').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+
+            if (viewId === 'scan-view') {
+                bootWebcamChannel('webcam', 'webcam-overlay', true);
+            } else if (viewId === 'register-view') {
+                persistentSampleIndex = 0;
+                document.getElementById('sample-counter-badge').innerText = "Photos Saved: 0/5";
+                document.getElementById('pose-instruction-box').innerText = poseGuidelines[0];
+                bootWebcamChannel('reg-webcam', 'reg-overlay', false);
+            } else if (viewId === 'logs-view') {
+                syncDatabaseMatrices();
+            } else if (viewId === 'directory-view') {
+                syncDatabaseMatrices().then(() => buildDirectorySidebarList());
+            }
+        }
+
+        function bootWebcamChannel(videoTagId, overlayCanvasId, isMultiPersonScanMode) {
+            navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } })
+                .then(stream => {
+                    liveStreamObject = stream;
+                    const videoTarget = document.getElementById(videoTagId);
+                    videoTarget.srcObject = stream;
+                    
+                    // Wait for video to actually be playing before starting frame capture
+                    videoTarget.addEventListener('playing', () => {
+                        frameProcessingIntervalId = setInterval(() => {
+                            executeAutomatedBackgroundFaceTracking(videoTarget, overlayCanvasId, isMultiPersonScanMode);
+                        }, 150);
+                    }, { once: true });
+
+                }).catch(err => alert("Webcam error: " + err));
+        }
+
+        function killActiveWebcamFeeds() {
+            if (frameProcessingIntervalId) {
+                clearInterval(frameProcessingIntervalId);
+                frameProcessingIntervalId = null;
+            }
+            if (liveStreamObject) {
+                liveStreamObject.getTracks().forEach(track => track.stop());
+                liveStreamObject = null;
+            }
+            wipeOverlayCanvas('webcam-overlay');
+            wipeOverlayCanvas('reg-overlay');
+        }
+
+        function wipeOverlayCanvas(id) {
+            const canvasEl = document.getElementById(id);
+            if (canvasEl) canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
+        }
+
+        /**
+         * AUTOMATED BACKGROUND FACE TRACKER
+         * Completely fixed to scan and render box elements for EVERYONE visible simultaneously
+         */
+        function executeAutomatedBackgroundFaceTracking(videoElement, overlayCanvasId, isMultiPersonScanMode) {
+            if (!liveStreamObject) return;
+            if (isRequestInFlight) return;
+            
+            isRequestInFlight = true;
+
+            const ctx = captureCanvas.getContext('2d');
+            ctx.save();
+            ctx.scale(-1, 1); // un-mirror horizontally before sending payload to backend
+            ctx.drawImage(videoElement, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
+            ctx.restore();
+            const base64Payload = captureCanvas.toDataURL('image/jpeg');
+
+            fetch('/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const overlay = document.getElementById(overlayCanvasId);
+                const oCtx = overlay.getContext('2d');
+
+                overlay.width = overlay.clientWidth;
+                overlay.height = overlay.clientHeight;
+                oCtx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(person => {
+                        if (person.bbox) {
+                            const formattedScore = (person.score !== undefined && !isNaN(person.score))
+                                ? (person.score * 100).toFixed(1) : "0.0";
+
+                            let labelsTextFormat = `Score: ${person.score.toFixed(2)}`;
+                            if (isMultiPersonScanMode) {
+                                labelsTextFormat = person.name !== "Unknown"
+                                    ? `${person.name} | ${formattedScore}%`
+                                    : `Unknown | ${formattedScore}%`;
+                            }
+
+                            const activeBoxColor = (person.status === 'success' || person.status === 'already_marked'
+                                || !isMultiPersonScanMode) ? '#10b981' : '#ef4444';
+
+                            drawOverlayBoundingBox(overlayCanvasId, person.bbox, labelsTextFormat, activeBoxColor);
+                        }
+                    });
+                }
+            })
+            .catch(err => console.log("Frame sync error:", err))
+            .finally(() => {
+                isRequestInFlight = false;
+            });
+        }
+
+        function checkDuplicateNameGuard() {
+            const inputName = document.getElementById('reg-name').value.trim().toLowerCase();
+            const feedback = document.getElementById('reg-feedback');
+            const captureBtn = document.getElementById('btn-capture-photo');
+            const saveBtn = document.getElementById('btn-save-profile');
+
+            if (knownRegisteredUsersList.map(u => u.toLowerCase()).includes(inputName)) {
+                feedback.className = "text-sm text-center font-semibold px-4 py-3 rounded-xl bg-rose-50 text-rose-700 block shadow-sm";
+                feedback.innerText = "❌ Warning: This employee ID/Name is already registered in the database.";
+                captureBtn.disabled = true;
+                saveBtn.disabled = true;
+                captureBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                saveBtn.classList.add('opacity-40', 'cursor-not-allowed');
+            } else {
+                feedback.classList.add('hidden');
+                captureBtn.disabled = false;
+                saveBtn.disabled = false;
+                captureBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+                saveBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+        }
+
+        /**
+         * Renders Bounding Boxes with Names and Detection Scores
+         * Matches your native Python script behavior and adjusts for mirrored video container configurations.
+         */
+        function drawOverlayBoundingBox(canvasId, bbox, identifierLabel, boundingColor) {
+            const overlay = document.getElementById(canvasId);
+            const ctx = overlay.getContext('2d');
+
+            if (!bbox || overlay.width === 0 || overlay.height === 0) return;
+
+            const [x1, y1, bw, bh] = bbox;
+
+            const scaleX = overlay.width / 640;
+            const scaleY = overlay.height / 480;
+
+            // Video is CSS mirror-flipped via scale-x-[-1] on UI element container viewports,
+            // so we calculate the tracking box location to overlay on top of standard container planes.
+            const scaledW = bw * scaleX;
+            const scaledH = bh * scaleY;
+            const scaledY = y1 * scaleY;
+            const scaledX = overlay.width - (x1 * scaleX) - scaledW;
+
+            // Box Matrix Outline
+            ctx.strokeStyle = boundingColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(scaledX, scaledY, scaledW, scaledH);
+
+            // Label background elements
+            ctx.font = "600 14px sans-serif";
+            const textWidth = ctx.measureText(identifierLabel).width;
+            ctx.fillStyle = boundingColor;
+            ctx.fillRect(scaledX, scaledY - 22, textWidth + 10, 20);
+
+            // White Foreground Label Text String
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(identifierLabel, scaledX + 5, scaledY - 7);
+        }
+
+        /**
+         * OPERATION 1: TRIGGER ATTENDANCE LOG FLUSH ON CLICK
+         */
+        document.getElementById('capture-btn').addEventListener('click', () => {
+            const scanFeedback = document.getElementById('scan-feedback');
+            scanFeedback.innerText = "Recording attendance entries checks...";
+            scanFeedback.className = "px-3 py-2.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 block text-center";
+            
+            const liveVideo = document.getElementById('webcam');
+            const ctx = captureCanvas.getContext('2d');
+            ctx.save();
+            ctx.scale(-1, 1); // un-mirror horizontally before execution sequence
+            ctx.drawImage(liveVideo, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
+            ctx.restore();
+            const base64Payload = captureCanvas.toDataURL('image/jpeg');
+
+            fetch('/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const verifiedItems = data.results ? data.results.filter(r => r.status === 'success' || r.status === 'already_marked') : [];
+                if(verifiedItems.length > 0) {
+                    scanFeedback.innerText = `Success: Registered logs for ${verifiedItems.map(v => v.name).join(', ')}`;
+                    scanFeedback.className = "px-3 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 block text-center";
+                } else {
+                    scanFeedback.innerText = "Scanning complete. No new profiles marked.";
+                    scanFeedback.className = "px-3 py-2.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 block text-center";
+                }
+                syncDatabaseMatrices();
+            });
+        });
+
+        /**
+         * OPERATION 2: MULTI-ANGLE SAMPLES CAPTURE ENROLLMENT FLOW
+         */
+        function captureRegistrationSample() {
+            const name = document.getElementById('reg-name').value.trim();
+            const feedback = document.getElementById('reg-feedback');
+            const counterBadge = document.getElementById('sample-counter-badge');
+            const instructionLabel = document.getElementById('pose-instruction-box');
+            
+            if (!name) { alert("Please type a name first."); return; }
+
+            feedback.innerText = "Saving image view...";
+            feedback.className = "text-xs text-center font-semibold px-3 py-2.5 rounded-xl bg-amber-50 text-amber-700 block";
+
+            const liveVideo = document.getElementById('reg-webcam');
+            const ctx = captureCanvas.getContext('2d');
+            ctx.save();
+            ctx.scale(-1, 1); // un-mirror registration context frames perfectly
+            ctx.drawImage(liveVideo, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
+            ctx.restore();
+            const base64Payload = captureCanvas.toDataURL('image/jpeg');
+
+            fetch('/api/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name, image: base64Payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'captured' || data.status === 'completed') {
+                    persistentSampleIndex = data.count;
+                    counterBadge.innerText = `Photos Saved: ${persistentSampleIndex}/5`;
+                    
+                    if (persistentSampleIndex < 5) {
+                        instructionLabel.innerText = poseGuidelines[persistentSampleIndex];
+                    } else {
+                        instructionLabel.innerText = "Guide: Complete! Click Save 💾";
+                    }
+
+                    feedback.className = "text-xs text-center font-semibold px-3 py-2.5 rounded-xl bg-blue-50 text-blue-700 block";
+                    feedback.innerText = data.message;
+                } else {
+                    feedback.className = "text-xs text-center font-semibold px-3 py-2.5 rounded-xl bg-rose-50 text-rose-700 block";
+                    feedback.innerText = data.message;
+                }
+            });
+        }
+
+        function submitRegistrationProfile() {
+            const feedback = document.getElementById('reg-feedback');
+            if (persistentSampleIndex < 3) {
+                feedback.className = "text-xs text-center font-semibold px-3 py-2.5 rounded-xl bg-rose-50 text-rose-700 block";
+                feedback.innerText = "Please take at least 3 sample photos from different angles before saving.";
+                return;
+            }
+            
+            feedback.className = "text-xs text-center font-semibold px-3 py-2.5 rounded-xl bg-emerald-50 text-emerald-700 block";
+            feedback.innerText = "Profile created successfully! ✅";
+            document.getElementById('reg-name').value = '';
+            document.getElementById('sample-counter-badge').innerText = "Photos Saved: 0/5";
+            document.getElementById('pose-instruction-box').innerText = "Guide: Look Straight 😐";
+            persistentSampleIndex = 0;
+            
+            syncDatabaseMatrices();
+            setTimeout(() => navigateTo('home-view'), 1200);
+        }
+
+        /**
+         * OPERATION 3: REVIEWS CALL LOG CATEGORIES MARKS
+         */
+        function generateCallLogStructuredTiers(recordsList) {
+            const tBodyToday = document.getElementById('tbody-today');
+            const tBodyYesterday = document.getElementById('tbody-yesterday');
+            const tBodyOlder = document.getElementById('tbody-older');
+
+            const currentTimestamp = new Date();
+            const stringTodayMatch = currentTimestamp.toISOString().split('T')[0];
+            
+            const yesterdayTimestamp = new Date();
+            yesterdayTimestamp.setDate(currentTimestamp.getDate() - 1);
+            const stringYesterdayMatch = yesterdayTimestamp.toISOString().split('T')[0];
+
+            let contentToday = "", contentYesterday = "", contentOlder = "";
+
+            recordsList.forEach(logLine => {
+                const rowMarkupHtml = `
+                    <tr class="hover:bg-slate-50 transition text-sm">
+                        <td class="p-4 font-bold text-slate-900 w-1/3">👤 ${logLine.name}</td>
+                        <td class="p-4 text-slate-400 font-medium text-left">${logLine.date}</td>
+                        <td class="p-4 text-slate-500 font-mono text-left">${logLine.time}</td>
+                        <td class="p-4 text-right"><span class="px-3 py-1 text-xs font-bold rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100">Present</span></td>
+                    </tr>
+                `;
+
+                if (logLine.date === stringTodayMatch) contentToday += rowMarkupHtml;
+                else if (logLine.date === stringYesterdayMatch) contentYesterday += rowMarkupHtml;
+                else contentOlder += rowMarkupHtml;
+            });
+
+            tBodyToday.innerHTML = contentToday || `<tr><td class="p-4 text-center text-slate-400 bg-white">No logs recorded today.</td></tr>`;
+            tBodyYesterday.innerHTML = contentYesterday || `<tr><td class="p-4 text-center text-slate-400 bg-white">No logs recorded yesterday.</td></tr>`;
+            tBodyOlder.innerHTML = contentOlder || `<tr><td class="p-4 text-center text-slate-400 bg-white">No historical records saved.</td></tr>`;
+        }
+
+        /**
+         * OPERATION 4: SYSTEM USER SIDEBAR ITERATORS
+         */
+        function buildDirectorySidebarList() {
+            const box = document.getElementById('directory-list-box');
+            if (knownRegisteredUsersList.length === 0) {
+                box.innerHTML = `<p class="text-xs text-slate-400 text-center py-4">No registered profiles found.</p>`;
+                return;
+            }
+            box.innerHTML = knownRegisteredUsersList.map(u => `
+                <button onclick="drawCircularAttendanceChart('${u}')" class="w-full text-left px-4 py-3.5 rounded-xl text-sm font-bold transition hover:bg-slate-100 border border-transparent hover:border-slate-200 flex justify-between items-center bg-slate-50 shadow-sm">
+                    <span>👤 ${u}</span>
+                    <span class="text-[11px] text-blue-500 font-bold">Check Status &rarr;</span>
+                </button>
+            `).join('');
+        }
+
+        /**
+         * OPERATION 5: ANALYSIS RADIAL DOUGHNUT DRAW SEQUENCES
+         */
+        function drawCircularAttendanceChart(workerName) {
+            document.getElementById('chart-placeholder').style.display = 'none';
+            document.getElementById('chart-container-content').classList.remove('hidden');
+            document.getElementById('chart-worker-title').innerText = workerName + "'s Attendance Overview";
+
+            const associatedLogs = localSystemLogsArray.filter(l => l.name === workerName);
+            const uniquePresentDaysCount = [...new Set(associatedLogs.map(l => l.date))].length;
+            
+            const uniqueTotalSystemDays = [...new Set(localSystemLogsArray.map(l => l.date))].length || 1;
+            const absentDaysCalculatedValue = Math.max(0, uniqueTotalSystemDays - uniquePresentDaysCount);
+
+            if (doughnutChartReference) doughnutChartReference.destroy();
+
+            const ctx2D = document.getElementById('circularAttendanceChart').getContext('2d');
+            doughnutChartReference = new Chart(ctx2D, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Days Present', 'Days Absent'],
+                    datasets: [{
+                        data: [uniquePresentDaysCount, absentDaysCalculatedValue],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 13, weight: 'bold' } } }
+                    },
+                    cutout: '74%'
+                }
+            });
+        }
+
+        function syncDatabaseMatrices() {
+            fetch('/api/users').then(res => res.json()).then(userData => {
+                knownRegisteredUsersList = userData.users || [];
+            });
+
+            return fetch('/api/attendance')
+                .then(res => res.json())
+                .then(data => {
+                    localSystemLogsArray = data.attendance || [];
+                    generateCallLogStructuredTiers(localSystemLogsArray);
+                });
+        }
+
+        window.onload = () => {
+            syncDatabaseMatrices();
+        };
+    </script>
+</body>
+</html>
