@@ -1,8 +1,0 @@
-flask
-flask-cors
-opencv-python-headless
-numpy
-scipy
-insightface
-onnxruntime
-gunicorn
