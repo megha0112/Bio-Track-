@@ -1,2 +1,5 @@
 [phases.setup]
-nixPkgs = ["python310", "gcc", "gnumake"]
+nixPkgs = ["python310", "gcc", "gnumake", "libGL", "glibc"]
+
+[phases.build]
+cmds = ["pip install -r requirements.txt"]
