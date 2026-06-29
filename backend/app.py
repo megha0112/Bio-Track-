@@ -3,7 +3,7 @@ import csv
 from datetime import datetime
 import os
 from flask import Flask, jsonify, request
-from flask_cors import CORS  # Added CORS
+from flask_cors import CORS  # Added CORS[cite: 1]
 import cv2
 import numpy as np
 from scipy.spatial.distance import cosine
@@ -23,14 +23,19 @@ else:
 CSV_FILE = os.path.join(DATABASE, "attendance.csv")
 os.makedirs(DATABASE, exist_ok=True)
 
-# Initialize Flask (Removed frontend template_folder since Vercel handles frontend)
+# Initialize Flask
 app = Flask(__name__)
 
-# Enable CORS - Replace with your actual live Vercel URL after deploying
-CORS(app, origins=[
-    "http://localhost:3000", # For local frontend testing if needed
-    "https://your-vercel-app.vercel.app" # Your production Vercel frontend
-])
+# Complete production-ready CORS structure matching app_py_changes.docx[cite: 1]
+CORS(app, resources={
+    r"/*": {
+        "origins": [
+            "http://localhost:3000",
+            "http://127.0.0.1:5500",
+            "https://bio-track-five.vercel.app"
+        ]
+    }
+})
 
 # Initialize Face Analysis Engine
 face_app = FaceAnalysis(name="buffalo_s")
