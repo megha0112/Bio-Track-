@@ -2,33 +2,50 @@ import base64
 import csv
 from datetime import datetime
 import os
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS  # Added CORS
 import cv2
 import numpy as np
 from scipy.spatial.distance import cosine
 from insightface.app import FaceAnalysis
 
+# ---------------------------
+# Path & Environment Setup
+# ---------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FRONTEND_DIR = os.path.normpath(os.path.join(BASE_DIR, "..", "frontend"))
-DATABASE = os.path.normpath(os.path.join(BASE_DIR, "database"))
-CSV_FILE = os.path.join(BASE_DIR, "attendance.csv")
 
+# If running on Railway, prioritize the volume mount path for data persistence
+if os.getenv("RAILWAY_ENVIRONMENT") or os.path.exists("/app/database"):
+    DATABASE = "/app/database"
+else:
+    DATABASE = os.path.normpath(os.path.join(BASE_DIR, "database"))
+
+CSV_FILE = os.path.join(DATABASE, "attendance.csv")
 os.makedirs(DATABASE, exist_ok=True)
 
-app = Flask(__name__, template_folder=FRONTEND_DIR)
+# Initialize Flask (Removed frontend template_folder since Vercel handles frontend)
+app = Flask(__name__)
 
+# Enable CORS - Replace with your actual live Vercel URL after deploying
+CORS(app, origins=[
+    "http://localhost:3000", # For local frontend testing if needed
+    "https://your-vercel-app.vercel.app" # Your production Vercel frontend
+])
+
+# Initialize Face Analysis Engine
 face_app = FaceAnalysis(name="buffalo_s")
 face_app.prepare(ctx_id=-1, det_size=(320, 320))
 
 REGISTRATION_SESSIONS = {}
 
+# Ensure CSV template structure exists in the persistent directory
 if not os.path.exists(CSV_FILE):
     with open(CSV_FILE, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(["Name", "Date", "Time", "Status"])
 
 # ---------------------------
-# Global Database
+# Global Database Tracker
 # ---------------------------
 known_names = []
 known_embeddings = []
@@ -52,11 +69,11 @@ def reload_database():
 reload_database()
 
 # ---------------------------
-# Routes
+# API Routes
 # ---------------------------
-@app.route("/")
-def home():
-    return render_template("index.html")
+@app.route("/", methods=["GET"])
+def health_check():
+    return jsonify({"status": "healthy", "service": "Bio-Track API"})
 
 @app.route("/api/users", methods=["GET"])
 def get_users():
@@ -68,7 +85,7 @@ def get_attendance():
     if os.path.exists(CSV_FILE):
         with open(CSV_FILE, "r") as f:
             reader = csv.reader(f)
-            next(reader, None)
+            next(reader, None)  # Skip header
             for row in reader:
                 if row:
                     records.append({
@@ -84,7 +101,8 @@ def debug():
     return jsonify({
         "loaded_names": known_names,
         "embedding_norms": [float(np.linalg.norm(e)) for e in known_embeddings],
-        "count": len(known_names)
+        "count": len(known_names),
+        "database_path": DATABASE
     })
 
 # ---------------------------
@@ -103,9 +121,6 @@ def upload():
     if frame is None:
         return jsonify({"status": "error", "message": "Could not decode image"}), 400
 
-    # The browser canvas sends the image as-is (not mirrored).
-    # We flip it horizontally here so InsightFace sees the same
-    # orientation as the registration photos (also flipped on capture).
     frame = cv2.flip(frame, 1)
     frame = cv2.resize(frame, (640, 480))
 
@@ -119,10 +134,8 @@ def upload():
 
     for face in faces:
         x1, y1, x2, y2 = map(int, face.bbox)
-        x1 = max(0, x1)
-        y1 = max(0, y1)
-        x2 = min(640, x2)
-        y2 = min(480, y2)
+        x1, y1 = max(0, x1), max(0, y1)
+        x2, y2 = min(640, x2), min(480, y2)
         bbox_coordinates = [x1, y1, x2 - x1, y2 - y1]
 
         if face.det_score < 0.60:
@@ -146,7 +159,6 @@ def upload():
 
         for i, stored_embedding in enumerate(known_embeddings):
             similarity = 1 - cosine(embedding, stored_embedding)
-            print(f"[MATCH] vs {known_names[i]}: {similarity:.4f}")
             if similarity > best_similarity:
                 best_similarity = similarity
                 best_name = known_names[i]
@@ -194,7 +206,7 @@ def upload():
     })
 
 # ---------------------------
-# Register
+# Register New Users
 # ---------------------------
 @app.route("/api/register", methods=["POST"])
 def register_user():
@@ -212,9 +224,7 @@ def register_user():
     if frame is None:
         return jsonify({"status": "error", "message": "Could not decode image"}), 400
 
-    # Flip registration frames the same way as detection frames
     frame = cv2.flip(frame, 1)
-
     faces = face_app.get(frame)
     if len(faces) == 0:
         return jsonify({"status": "error", "message": "No face detected", "bbox": None})
@@ -242,6 +252,8 @@ def register_user():
         stacked_embeddings = np.array(REGISTRATION_SESSIONS[name])
         mean_template = np.mean(stacked_embeddings, axis=0)
         mean_template = mean_template / np.linalg.norm(mean_template)
+        
+        # Save straight to persistent storage
         np.save(os.path.join(DATABASE, f"{name}.npy"), mean_template)
         reload_database()
         del REGISTRATION_SESSIONS[name]
@@ -261,4 +273,6 @@ def register_user():
     })
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, threaded=True)
+    # Bind to 0.0.0.0 so Railway can expose it externally
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True, threaded=True)
