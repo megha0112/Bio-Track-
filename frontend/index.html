@@ -284,7 +284,7 @@
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('/upload', {
+            fetch('bio-track-production.up.railway.app/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64Payload })
@@ -401,7 +401,7 @@
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('/upload', {
+            fetch('bio-track-production.up.railway.app/upload', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64Payload })
@@ -442,7 +442,7 @@
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('/api/register', {
+            fetch('bio-track-production.up.railway.app/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name, image: base64Payload })
@@ -581,11 +581,11 @@
         }
 
         function syncDatabaseMatrices() {
-            fetch('/api/users').then(res => res.json()).then(userData => {
+            fetch('bio-track-production.up.railway.app/api/users').then(res => res.json()).then(userData => {
                 knownRegisteredUsersList = userData.users || [];
             });
 
-            return fetch('/api/attendance')
+            return fetch('bio-track-production.up.railway.app/api/attendance')
                 .then(res => res.json())
                 .then(data => {
                     localSystemLogsArray = data.attendance || [];
