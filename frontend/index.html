@@ -194,6 +194,8 @@
     <canvas id="hidden-canvas" style="display:none;" width="640" height="480"></canvas>
 
     <script>
+        const API_URL = "https://bio-track-production.up.railway.app";
+
         let liveStreamObject = null;
         let localSystemLogsArray = [];
         let doughnutChartReference = null;
@@ -239,7 +241,6 @@
                     const videoTarget = document.getElementById(videoTagId);
                     videoTarget.srcObject = stream;
                     
-                    // Wait for video to actually be playing before starting frame capture
                     videoTarget.addEventListener('playing', () => {
                         frameProcessingIntervalId = setInterval(() => {
                             executeAutomatedBackgroundFaceTracking(videoTarget, overlayCanvasId, isMultiPersonScanMode);
@@ -267,10 +268,6 @@
             if (canvasEl) canvasEl.getContext('2d').clearRect(0, 0, canvasEl.width, canvasEl.height);
         }
 
-        /**
-         * AUTOMATED BACKGROUND FACE TRACKER
-         * Completely fixed to scan and render box elements for EVERYONE visible simultaneously
-         */
         function executeAutomatedBackgroundFaceTracking(videoElement, overlayCanvasId, isMultiPersonScanMode) {
             if (!liveStreamObject) return;
             if (isRequestInFlight) return;
@@ -279,12 +276,12 @@
 
             const ctx = captureCanvas.getContext('2d');
             ctx.save();
-            ctx.scale(-1, 1); // un-mirror horizontally before sending payload to backend
+            ctx.scale(-1, 1);
             ctx.drawImage(videoElement, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('bio-track-production.up.railway.app/upload', {
+            fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64Payload })
@@ -347,10 +344,6 @@
             }
         }
 
-        /**
-         * Renders Bounding Boxes with Names and Detection Scores
-         * Matches your native Python script behavior and adjusts for mirrored video container configurations.
-         */
         function drawOverlayBoundingBox(canvasId, bbox, identifierLabel, boundingColor) {
             const overlay = document.getElementById(canvasId);
             const ctx = overlay.getContext('2d');
@@ -358,36 +351,27 @@
             if (!bbox || overlay.width === 0 || overlay.height === 0) return;
 
             const [x1, y1, bw, bh] = bbox;
-
             const scaleX = overlay.width / 640;
             const scaleY = overlay.height / 480;
 
-            // Video is CSS mirror-flipped via scale-x-[-1] on UI element container viewports,
-            // so we calculate the tracking box location to overlay on top of standard container planes.
             const scaledW = bw * scaleX;
             const scaledH = bh * scaleY;
             const scaledY = y1 * scaleY;
             const scaledX = overlay.width - (x1 * scaleX) - scaledW;
 
-            // Box Matrix Outline
             ctx.strokeStyle = boundingColor;
             ctx.lineWidth = 2;
             ctx.strokeRect(scaledX, scaledY, scaledW, scaledH);
 
-            // Label background elements
             ctx.font = "600 14px sans-serif";
             const textWidth = ctx.measureText(identifierLabel).width;
             ctx.fillStyle = boundingColor;
             ctx.fillRect(scaledX, scaledY - 22, textWidth + 10, 20);
 
-            // White Foreground Label Text String
             ctx.fillStyle = '#ffffff';
             ctx.fillText(identifierLabel, scaledX + 5, scaledY - 7);
         }
 
-        /**
-         * OPERATION 1: TRIGGER ATTENDANCE LOG FLUSH ON CLICK
-         */
         document.getElementById('capture-btn').addEventListener('click', () => {
             const scanFeedback = document.getElementById('scan-feedback');
             scanFeedback.innerText = "Recording attendance entries checks...";
@@ -396,12 +380,12 @@
             const liveVideo = document.getElementById('webcam');
             const ctx = captureCanvas.getContext('2d');
             ctx.save();
-            ctx.scale(-1, 1); // un-mirror horizontally before execution sequence
+            ctx.scale(-1, 1);
             ctx.drawImage(liveVideo, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('bio-track-production.up.railway.app/upload', {
+            fetch(`${API_URL}/upload`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ image: base64Payload })
@@ -420,9 +404,6 @@
             });
         });
 
-        /**
-         * OPERATION 2: MULTI-ANGLE SAMPLES CAPTURE ENROLLMENT FLOW
-         */
         function captureRegistrationSample() {
             const name = document.getElementById('reg-name').value.trim();
             const feedback = document.getElementById('reg-feedback');
@@ -437,12 +418,12 @@
             const liveVideo = document.getElementById('reg-webcam');
             const ctx = captureCanvas.getContext('2d');
             ctx.save();
-            ctx.scale(-1, 1); // un-mirror registration context frames perfectly
+            ctx.scale(-1, 1);
             ctx.drawImage(liveVideo, -captureCanvas.width, 0, captureCanvas.width, captureCanvas.height);
             ctx.restore();
             const base64Payload = captureCanvas.toDataURL('image/jpeg');
 
-            fetch('bio-track-production.up.railway.app/api/register', {
+            fetch(`${API_URL}/api/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name: name, image: base64Payload })
@@ -487,9 +468,6 @@
             setTimeout(() => navigateTo('home-view'), 1200);
         }
 
-        /**
-         * OPERATION 3: REVIEWS CALL LOG CATEGORIES MARKS
-         */
         function generateCallLogStructuredTiers(recordsList) {
             const tBodyToday = document.getElementById('tbody-today');
             const tBodyYesterday = document.getElementById('tbody-yesterday');
@@ -524,9 +502,6 @@
             tBodyOlder.innerHTML = contentOlder || `<tr><td class="p-4 text-center text-slate-400 bg-white">No historical records saved.</td></tr>`;
         }
 
-        /**
-         * OPERATION 4: SYSTEM USER SIDEBAR ITERATORS
-         */
         function buildDirectorySidebarList() {
             const box = document.getElementById('directory-list-box');
             if (knownRegisteredUsersList.length === 0) {
@@ -541,9 +516,6 @@
             `).join('');
         }
 
-        /**
-         * OPERATION 5: ANALYSIS RADIAL DOUGHNUT DRAW SEQUENCES
-         */
         function drawCircularAttendanceChart(workerName) {
             document.getElementById('chart-placeholder').style.display = 'none';
             document.getElementById('chart-container-content').classList.remove('hidden');
@@ -581,11 +553,11 @@
         }
 
         function syncDatabaseMatrices() {
-            fetch('bio-track-production.up.railway.app/api/users').then(res => res.json()).then(userData => {
+            fetch(`${API_URL}/api/users`).then(res => res.json()).then(userData => {
                 knownRegisteredUsersList = userData.users || [];
             });
 
-            return fetch('bio-track-production.up.railway.app/api/attendance')
+            return fetch(`${API_URL}/api/attendance`)
                 .then(res => res.json())
                 .then(data => {
                     localSystemLogsArray = data.attendance || [];
